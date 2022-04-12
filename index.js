@@ -1,10 +1,10 @@
-http = require('http')
+express = require('express')
+const app = express()
 
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' })
-  res.end('Hello world!')
+app.use('/', (req, res, next) => {
+  res.send('hello world')
 })
 
-server.listen(3001, () => {
+app.listen(3001, () => {
   console.log('server running')
 })
