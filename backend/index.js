@@ -11,6 +11,7 @@ mongoose.connect(process.env.MONGODB_URI)
 
 const messageSchema = new mongoose.Schema({
   content: String,
+  user: String,
   date: Date,
 })
 
@@ -29,6 +30,7 @@ messageRouter.post('/', async (req, res, next) => {
 
   const message = new Message({
     content: body.content,
+    user: body.user,
     date: new Date(),
   })
 
