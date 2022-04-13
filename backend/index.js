@@ -3,7 +3,12 @@ const mongoose = require('mongoose')
 const messageRouter = express.Router()
 require('dotenv').config()
 
+const { Server } = require('socket.io')
+const { createServer } = require('http')
+
 const app = express()
+const httpServer = createServer(app)
+const io = new Server(httpServer)
 
 app.use(express.json())
 
@@ -48,9 +53,30 @@ app.use('/api/clear', async (req, res, next) => {
 })
 
 app.use('/', (req, res, next) => {
-  res.send('hello world')
+  res.sendFile(__dirname + '/index.html')
 })
 
-app.listen(3001, () => {
-  console.log('server running')
+const saveMessage = async (message) => {
+  const newMessage = new Message({
+    content: message,
+    // user: message.user,
+    date: new Date(),
+  })
+
+  await newMessage.save()
+}
+
+const getMessages = async () => {
+  return await Message.find({})
+}
+
+io.on('connection', async (socket) => {
+  console.log('connect')
+  io.emit('chat messages', await getMessages())
+  socket.on('chat message', (message) => {
+    io.emit('chat message', message)
+    saveMessage(message)
+  })
 })
+
+httpServer.listen(3001)
