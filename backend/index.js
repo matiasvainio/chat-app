@@ -8,7 +8,12 @@ const { createServer } = require('http')
 
 const app = express()
 const httpServer = createServer(app)
-const io = new Server(httpServer)
+const io = new Server(httpServer, {
+  cors: {
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+  },
+})
 
 app.use(express.json())
 
@@ -42,6 +47,7 @@ messageRouter.post('/', async (req, res, next) => {
   await message.save()
 
   const messages = await Message.find({})
+
   res.status(200).json(messages)
 })
 
@@ -58,7 +64,7 @@ app.use('/', (req, res, next) => {
 
 const saveMessage = async (message) => {
   const newMessage = new Message({
-    content: message,
+    content: message.content,
     // user: message.user,
     date: new Date(),
   })
@@ -75,8 +81,9 @@ io.on('connection', async (socket) => {
   io.emit('chat messages', await getMessages())
   socket.on('chat message', (message) => {
     io.emit('chat message', message)
+    console.log(message)
     saveMessage(message)
   })
 })
 
-httpServer.listen(3001)
+httpServer.listen(3002)
