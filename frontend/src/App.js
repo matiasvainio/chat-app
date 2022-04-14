@@ -2,10 +2,26 @@ import './App.css'
 import { io } from 'socket.io-client'
 import { ObjectId } from 'bson'
 import { useEffect, useState } from 'react'
+import { Routes, Route, Link } from 'react-router-dom'
 
 const socket = io.connect('localhost:3002')
 
 function App() {
+  return (
+    <div className="App">
+      <nav>
+        <Link to="/rooms">rooms</Link>
+        <Link to="/chat">chat</Link>
+      </nav>
+      <Routes>
+        <Route path="/rooms" element={<h1>rooms</h1>}></Route>
+        <Route path="/chat" element={<Chat />}></Route>
+      </Routes>
+    </div>
+  )
+}
+
+const Chat = () => {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
 
@@ -16,7 +32,7 @@ function App() {
         setMessages(messages)
       })
     }
-  })
+  }, [messages])
 
   useEffect(() => {
     socket.on('chat message', (message) => {
@@ -30,10 +46,12 @@ function App() {
     const message = {
       _id: new ObjectId().toString(),
       content: input,
+      date: new Date(),
     }
 
     socket.emit('chat message', message)
     setInput('')
+    console.log(messages)
   }
 
   const handleInput = (event) => {
@@ -42,11 +60,13 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <h1>Hello world</h1>
-      {messages.map((x) => (
-        <li key={x._id}>{x.content}</li>
-      ))}
+    <div>
+      <h1>Chat</h1>
+      <ul>
+        {messages.map((x) => (
+          <Message key="1" props={x} />
+        ))}
+      </ul>
       <form onSubmit={handleSubmit}>
         <input
           placeholder="Type..."
@@ -57,6 +77,12 @@ function App() {
       </form>
     </div>
   )
+}
+
+const Message = ({ props }) => {
+  const { content, _id, date } = props
+  console.log(_id)
+  return <li key={content}>{content}</li>
 }
 
 export default App
