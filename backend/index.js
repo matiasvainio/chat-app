@@ -67,7 +67,7 @@ app.use('/', (req, res, next) => {
 const saveMessage = async (message) => {
   const newMessage = new Message({
     content: message.content,
-    // user: message.user,
+    user: message.user,
     date: new Date(),
     roomid: message.roomid,
   })
@@ -80,13 +80,31 @@ const getMessages = async (roomid) => {
 }
 
 io.on('connection', async (socket) => {
+  // socket.on('chat message', (message) => {
+  //   socket.emit('chat message', message)
+  //   saveMessage(message)
+  // })
+
+  // socket.on('join room', async (roomid) => {
+  //   console.log(roomid)
+  //   socket.on('chat message', (message) => {
+  //     console.log('message', message);
+  //     io.to(roomid).emit('chat message')
+  //   })
+  //   socket.emit('chat messages', await getMessages(roomid))
+  // })
+
   socket.on('chat message', (message) => {
-    socket.emit('chat message', message)
+    socket.to(message.roomid).emit('chat message', message)
     saveMessage(message)
   })
 
   socket.on('join room', async (roomid) => {
-    socket.emit('chat messages', await getMessages(roomid))
+    socket.rooms.forEach((room) => {
+      socket.leave(room)
+    })
+    socket.join(roomid)
+    socket.to(roomid).emit('chat messages', await getMessages(roomid))
   })
 })
 
