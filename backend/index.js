@@ -80,20 +80,6 @@ const getMessages = async (roomid) => {
 }
 
 io.on('connection', async (socket) => {
-  // socket.on('chat message', (message) => {
-  //   socket.emit('chat message', message)
-  //   saveMessage(message)
-  // })
-
-  // socket.on('join room', async (roomid) => {
-  //   console.log(roomid)
-  //   socket.on('chat message', (message) => {
-  //     console.log('message', message);
-  //     io.to(roomid).emit('chat message')
-  //   })
-  //   socket.emit('chat messages', await getMessages(roomid))
-  // })
-
   socket.on('chat message', (message) => {
     socket.to(message.roomid).emit('chat message', message)
     saveMessage(message)
