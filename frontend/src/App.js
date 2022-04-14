@@ -10,19 +10,18 @@ function App() {
   return (
     <div className="App">
       <nav>
+        <Link to="/">landing</Link>
         <Link to="login">login</Link>
         <Link to="rooms">rooms</Link>
         <Link to="settings">settings</Link>
       </nav>
       <Routes>
-        <Route path="/" element={<Landing />}>
-          <Route path="home" element={<Home />} />
-          <Route path="login" element={<Login />} />
-          <Route path="rooms" element={<Rooms />}>
-            <Route path=":id" element={<Room />} />
-          </Route>
-          <Route path="settings" element={<Settings />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="login" element={<Login />} />
+        <Route path="rooms" element={<Rooms />}>
+          <Route path=":id" element={<Room />} />
         </Route>
+        <Route path="settings" element={<Settings />} />
       </Routes>
     </div>
   )
@@ -126,6 +125,8 @@ const Landing = () => {
     setUsername(event.target.value)
   }
 
+  const currentUser = window.localStorage.username
+
   return (
     <div>
       <h1>username:</h1>
@@ -133,7 +134,7 @@ const Landing = () => {
         <input onChange={handleInput} value={username} />
         <button>submit</button>
       </form>
-      <Outlet />
+      <h1>current username: {currentUser === undefined ? '' : currentUser}</h1>
     </div>
   )
 }
