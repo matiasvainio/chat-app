@@ -23,6 +23,7 @@ const messageSchema = new mongoose.Schema({
   content: String,
   user: String,
   date: Date,
+  roomid: String,
 })
 
 const Message = mongoose.model('Message', messageSchema)
@@ -42,6 +43,7 @@ messageRouter.post('/', async (req, res, next) => {
     content: body.content,
     user: body.user,
     date: new Date(),
+    roomid: String,
   })
 
   await message.save()
@@ -67,22 +69,24 @@ const saveMessage = async (message) => {
     content: message.content,
     // user: message.user,
     date: new Date(),
+    roomid: message.roomid,
   })
 
   await newMessage.save()
 }
 
-const getMessages = async () => {
-  return await Message.find({})
+const getMessages = async (roomid) => {
+  return await Message.find({ roomid: roomid })
 }
 
 io.on('connection', async (socket) => {
-  console.log('connect')
-  io.emit('chat messages', await getMessages())
   socket.on('chat message', (message) => {
-    io.emit('chat message', message)
-    console.log(message)
+    socket.emit('chat message', message)
     saveMessage(message)
+  })
+
+  socket.on('join room', async (roomid) => {
+    socket.emit('chat messages', await getMessages(roomid))
   })
 })
 
