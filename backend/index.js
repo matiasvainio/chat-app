@@ -114,7 +114,7 @@ userRouter.post('/login', async (req, res) => {
     if (!(user && (await bcrypt.compare(password, user.password)))) {
       return res.status(400).json({ error: 'invalid credentials' })
     }
-    
+
     const token = jwt.sign(
       { user_id: user._id, email },
       process.env.JWT_SECRET_KEY,
@@ -130,7 +130,29 @@ userRouter.post('/login', async (req, res) => {
   }
 })
 
-app.use('/api/messages', messageRouter)
+const verifytoken = (req, res, next) => {
+  const auth = req.headers.authorization
+  if (auth && auth.toLowerCase().startsWith('bearer ')) {
+    req.token = auth.substring(7)
+  }
+
+  console.log(req.token);
+
+  if (!req.token) {
+    return res.status(403).json({ error: 'token required for authentication' })
+  }
+
+  try {
+    const decoded = jwt.verify(req.token, process.env.JWT_SECRET_KEY)
+    req.user = decoded
+  } catch (err) {
+    console.log(err)
+  }
+
+  return next()
+}
+
+app.use('/api/messages', verifytoken, messageRouter)
 app.use('/api/user', userRouter)
 // remove all messages with any request
 app.use('/api/clear', async (req, res, next) => {
