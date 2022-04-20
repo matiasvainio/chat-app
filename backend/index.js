@@ -1,6 +1,9 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const messageRouter = express.Router()
+const userRouter = express.Router()
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
 const { Server } = require('socket.io')
@@ -26,7 +29,15 @@ const messageSchema = new mongoose.Schema({
   roomid: String,
 })
 
+const userSchema = new mongoose.Schema({
+  username: { type: String, default: null },
+  email: { type: String, unique: true },
+  password: String,
+  token: String,
+})
+
 const Message = mongoose.model('Message', messageSchema)
+const User = mongoose.model('User', userSchema)
 
 messageRouter.get('/', async (req, res, next) => {
   const messages = await Message.find({})
@@ -53,7 +64,74 @@ messageRouter.post('/', async (req, res, next) => {
   res.status(200).json(messages)
 })
 
+userRouter.post('/register', async (req, res) => {
+  try {
+    const { username, password, email } = req.body
+    if (!(username && password && email)) {
+      res.status(400).json({ error: 'all input required' })
+    }
+
+    const oldUser = await User.findOne({ email })
+
+    if (oldUser) {
+      return res.status(400).json({ error: 'user already exists' })
+    }
+
+    encryptedPassword = await bcrypt.hash(password, 10)
+
+    const user = await User.create({
+      username,
+      password: encryptedPassword,
+      email: email.toLowerCase(),
+    })
+
+    const token = jwt.sign(
+      { user_id: user._id, email },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: '2h',
+      }
+    )
+
+    user.token = token
+
+    res.status(201).json(user)
+  } catch (err) {
+    console.log(err)
+  }
+})
+
+userRouter.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body
+
+    if (!(email && password)) {
+      res.status(400).json({ error: 'username or password missing' })
+    }
+
+    const user = await User.findOne({ email })
+
+    if (!(user && (await bcrypt.compare(password, user.password)))) {
+      return res.status(400).json({ error: 'invalid credentials' })
+    }
+    
+    const token = jwt.sign(
+      { user_id: user._id, email },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: '2h',
+      }
+    )
+    user.token = token
+
+    res.status(200).json(user)
+  } catch (err) {
+    console.log(err)
+  }
+})
+
 app.use('/api/messages', messageRouter)
+app.use('/api/user', userRouter)
 // remove all messages with any request
 app.use('/api/clear', async (req, res, next) => {
   await Message.deleteMany({})
