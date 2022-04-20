@@ -1,9 +1,11 @@
 const express = require('express')
 const mongoose = require('mongoose')
+const cors = require('cors')
 require('dotenv').config()
 
 const messageRouter = require('./routes/messageRouter')
 const userRouter = require('./routes/userRouter')
+const roomRouter = require('./routes/roomRouter')
 const verifytoken = require('./middleware/auth')
 const Message = require('./models/message')
 
@@ -19,12 +21,14 @@ const io = new Server(httpServer, {
   },
 })
 
+app.use(cors())
 app.use(express.json())
 
 mongoose.connect(process.env.MONGODB_URI)
 
 app.use('/api/messages', verifytoken, messageRouter)
 app.use('/api/user', userRouter)
+app.use('/api/rooms', roomRouter)
 
 const saveMessage = async (message) => {
   const newMessage = new Message({
