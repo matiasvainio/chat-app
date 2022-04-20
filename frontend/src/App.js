@@ -1,15 +1,16 @@
-import './App.css'
 import { io } from 'socket.io-client'
 import { ObjectId } from 'bson'
 import { useEffect, useState } from 'react'
 import { Routes, Route, Link, Outlet, useParams } from 'react-router-dom'
+import axios from 'axios'
+import './App.css'
 
 const socket = io.connect('localhost:3002')
 
 function App() {
   return (
     <div className="App">
-      <nav>
+      <nav className="nav">
         <Link to="/">landing</Link>
         <Link to="login">login</Link>
         <Link to="rooms">rooms</Link>
@@ -18,7 +19,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="login" element={<Login />} />
-        <Route path="rooms" element={<Rooms />}>
+        <Route path="rooms" element={<RoomContainer />}>
           <Route path=":id" element={<Room />} />
         </Route>
         <Route path="settings" element={<Settings />} />
@@ -37,9 +38,9 @@ const Chat = ({ roomid }) => {
   })
 
   useEffect(() => {
-    socket.on('chat messages', (messages) => {
+    socket.on('chat messages', (incomingMessages) => {
       console.log('chat messages useeffect', socket._callbacks)
-      setMessages(messages)
+      setMessages(incomingMessages)
     })
   })
 
@@ -70,7 +71,7 @@ const Chat = ({ roomid }) => {
   }
 
   return (
-    <div>
+    <div className="chat">
       <ul style={{ listStyle: 'none', border: 0, padding: 0 }}>
         {messages.map((message) => (
           <Message key={message._id} props={message} />
@@ -82,7 +83,7 @@ const Chat = ({ roomid }) => {
           onChange={handleInput}
           value={input}
         ></input>
-        <button>submit</button>
+        <button>send</button>
       </form>
     </div>
   )
@@ -91,7 +92,7 @@ const Chat = ({ roomid }) => {
 const Message = ({ props }) => {
   const { content, _id, date, user } = props
   return (
-    <li>
+    <li className="message">
       <p>{content}</p>
       <p>{user}</p>
     </li>
@@ -147,24 +148,78 @@ const Home = () => {
   )
 }
 
+const RoomContainer = () => {
+  return (
+    <div className="room-container">
+      <Rooms />
+      <Outlet />
+    </div>
+  )
+}
+
 const Rooms = () => {
-  const [rooms, setRooms] = useState([
-    { id: 1, name: 'general' },
-    { id: 2, name: 'politics' },
-  ])
+  const [rooms, setRooms] = useState([])
+  const [newRoomName, setNewRoomName] = useState('')
+  const [showForm, setShowForm] = useState(false)
+
+  const url = 'http://localhost:3002/api/rooms'
+
+  const getRooms = async () => {
+    const response = await axios.get(url)
+    setRooms(response.data)
+  }
+
+  const handleInput = (event) => {
+    event.preventDefault()
+    setNewRoomName(event.target.value)
+  }
+
+  const createRoom = async (event) => {
+    event.preventDefault()
+    try {
+      const response = await axios.post(url, { name: newRoomName })
+      setRooms([...rooms, response.data])
+      setNewRoomName('')
+    } catch (err) {
+      console.log('ei onnistu')
+    }
+  }
+
+  useEffect(() => {
+    getRooms()
+  }, [])
 
   return (
-    <div>
+    <div className="rooms">
       <h1>rooms</h1>
       <ul style={{ margin: 0, padding: 0 }}>
         {rooms.map((room) => (
-          <li style={{ listStyle: 'none' }} key={room.id}>
+          <li style={{ listStyle: 'none' }} key={room._id}>
             <Link to={room.name}>{room.name}</Link>
           </li>
         ))}
-        <Outlet />
       </ul>
+      <button onClick={() => setShowForm(!showForm)}>create new room</button>
+      {showForm ? (
+        <NewRoomForm createRoom={createRoom} handleInput={handleInput} />
+      ) : (
+        ''
+      )}
     </div>
+  )
+}
+
+const NewRoomForm = ({ createRoom, handleInput, newRoomName }) => {
+  return (
+    <form className="new-room-form" onSubmit={createRoom}>
+      <p>create new room</p>
+      <input
+        placeholder="room name..."
+        onChange={handleInput}
+        value={newRoomName}
+      ></input>
+      <button>submit</button>
+    </form>
   )
 }
 
@@ -172,10 +227,8 @@ const Room = () => {
   const roomname = useParams()
   console.log(`join room ${roomname.id}`)
   socket.emit('join room', roomname.id)
-  // socket.off('chat messages')
-  // socket.off('chat message')
   return (
-    <div>
+    <div className="room">
       <h1>{roomname.id}</h1>
       <Chat roomid={roomname.id} />
     </div>
