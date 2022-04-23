@@ -58,7 +58,7 @@ const Chat = ({ roomid }) => {
   useEffect(() => {
     setTimeout(() => {
       scrollToBottom()
-    },0) 
+    }, 0)
   }, [messages])
 
   const handleSubmit = (event) => {
@@ -69,7 +69,7 @@ const Chat = ({ roomid }) => {
       content: input,
       date: new Date(),
       roomid: roomid,
-      user: window.localStorage.getItem('username'),
+      user: JSON.parse(window.localStorage.getItem('user')).username,
     }
 
     socket.emit('chat message', message)
@@ -106,17 +106,21 @@ const Chat = ({ roomid }) => {
 
 const Message = ({ props }) => {
   const { content, _id, date, user } = props
-  const currentUser = window.localStorage.getItem('username')
+  const currentUser = JSON.parse(window.localStorage.getItem('user'))
 
   return (
     <li
       className={
         'message ' +
-        (currentUser === user ? 'message-sent' : 'message-received')
+        (currentUser.username === user ? 'message-sent' : 'message-received')
       }
     >
-      <p className={currentUser === user ? 'user-sent' : 'user-received'}>
-        {currentUser === user ? 'You' : user}
+      <p
+        className={
+          currentUser.username === user ? 'user-sent' : 'user-received'
+        }
+      >
+        {currentUser.username === user ? 'You' : user}
       </p>
       <div className="message-content">
         <p>{content}</p>
@@ -126,12 +130,56 @@ const Message = ({ props }) => {
 }
 
 const Login = () => {
+  const emptyCredentials = {
+    email: '',
+    username: '',
+    password: '',
+  }
+  const [credentials, setCredentials] = useState(emptyCredentials)
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    const url = 'http://localhost:3002/api/user/login'
+
+    try {
+      const response = await axios.post(url, credentials)
+      console.log(response.data)
+      window.localStorage.setItem('user', JSON.stringify(response.data))
+    } catch (err) {
+      console.log(err)
+    }
+
+    setCredentials(emptyCredentials)
+  }
+
+  const handleChange = (event) => {
+    const name = event.target.name
+    const value = event.target.value
+    setCredentials((values) => ({ ...values, [name]: value }))
+  }
+
   return (
     <div>
       <h1>login</h1>
-      <form>
-        <input placeholder="Username"></input>
-        <input placeholder="Password"></input>
+      <form onSubmit={handleSubmit}>
+        <input
+          placeholder="Email"
+          name="email"
+          onChange={handleChange}
+          value={credentials.email}
+        ></input>
+        <input
+          placeholder="Username"
+          name="username"
+          onChange={handleChange}
+          value={credentials.username}
+        ></input>
+        <input
+          placeholder="Password"
+          name="password"
+          onChange={handleChange}
+          value={credentials.password}
+        ></input>
         <button>submit</button>
       </form>
     </div>
@@ -143,7 +191,7 @@ const Landing = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    window.localStorage.setItem('username', username)
+    window.localStorage.setItem('user', JSON.stringify({ username: username }))
     setUsername('')
   }
 
@@ -152,7 +200,7 @@ const Landing = () => {
     setUsername(event.target.value)
   }
 
-  const currentUser = window.localStorage.username
+  const currentUser = JSON.parse(window.localStorage.getItem('user'))
 
   return (
     <div>
@@ -161,7 +209,9 @@ const Landing = () => {
         <input onChange={handleInput} value={username} />
         <button>submit</button>
       </form>
-      <h1>current username: {currentUser === undefined ? '' : currentUser}</h1>
+      <h1>
+        current username: {currentUser === null ? '' : currentUser.username}
+      </h1>
     </div>
   )
 }
@@ -231,17 +281,33 @@ const Rooms = () => {
     return <div className="loader"></div>
   }
 
+  const renderNewRoomForm = () => {
+    const user = JSON.parse(window.localStorage.getItem('user'))
+    console.log(user)
+
+    if (user.token) {
+      return (
+        <div>
+          <button onClick={() => setShowForm(!showForm)}>
+            create new room
+          </button>
+          <NewRoomForm
+            createRoom={createRoom}
+            handleInput={handleInput}
+            newRoomName={newRoomName}
+            showForm={showForm}
+          />
+        </div>
+      )
+    }
+    return ''
+  }
+
   return (
     <div className="rooms">
       <h1>Chat Rooms</h1>
       {rooms.length !== 0 ? renderRooms() : renderLoading()}
-      <button onClick={() => setShowForm(!showForm)}>create new room</button>
-      <NewRoomForm
-        createRoom={createRoom}
-        handleInput={handleInput}
-        newRoomName={newRoomName}
-        showForm={showForm}
-      />
+      {renderNewRoomForm()}
     </div>
   )
 }
@@ -277,9 +343,24 @@ const Room = () => {
 }
 
 const Settings = () => {
+  const [user, setUser] = useState(window.localStorage.getItem('user'))
+
+  const logOut = () => {
+    window.localStorage.removeItem('user')
+    setUser('')
+  }
+
   return (
     <div>
       <h1>Settings</h1>
+      {user ? <button onClick={logOut}>logout</button> : ''}
+      <button
+        onClick={() =>
+          console.log(JSON.parse(window.localStorage.getItem('user')))
+        }
+      >
+        foo
+      </button>
     </div>
   )
 }
