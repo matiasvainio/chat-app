@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client'
 import { ObjectId } from 'bson'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Routes, Route, Link, Outlet, useParams } from 'react-router-dom'
 import axios from 'axios'
 import './App.css'
@@ -31,6 +31,11 @@ function App() {
 const Chat = ({ roomid }) => {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
+  const messagesEndRef = useRef(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current.scrollIntoView({ behavior: 'auto' })
+  }
 
   useEffect(() => {
     socket.off('chat messages')
@@ -49,6 +54,12 @@ const Chat = ({ roomid }) => {
       setMessages([...messages, message])
     })
   })
+
+  useEffect(() => {
+    setTimeout(() => {
+      scrollToBottom()
+    },0) 
+  }, [messages])
 
   const handleSubmit = (event) => {
     event.preventDefault()
@@ -72,11 +83,15 @@ const Chat = ({ roomid }) => {
 
   return (
     <div className="chat">
-      <ul style={{ listStyle: 'none', border: 0, padding: 0 }}>
-        {messages.map((message) => (
-          <Message key={message._id} props={message} />
-        ))}
-      </ul>
+      <div className="chat-messages">
+        <ul style={{ listStyle: 'none', border: 0, padding: 0 }}>
+          {messages.map((message) => (
+            <Message key={message._id} props={message} />
+          ))}
+        </ul>
+        <div ref={messagesEndRef} />
+      </div>
+
       <form onSubmit={handleSubmit}>
         <input
           placeholder="Type..."
@@ -91,10 +106,21 @@ const Chat = ({ roomid }) => {
 
 const Message = ({ props }) => {
   const { content, _id, date, user } = props
+  const currentUser = window.localStorage.getItem('username')
+
   return (
-    <li className="message">
-      <p>{content}</p>
-      <p>{user}</p>
+    <li
+      className={
+        'message ' +
+        (currentUser === user ? 'message-sent' : 'message-received')
+      }
+    >
+      <p className={currentUser === user ? 'user-sent' : 'user-received'}>
+        {currentUser === user ? 'You' : user}
+      </p>
+      <div className="message-content">
+        <p>{content}</p>
+      </div>
     </li>
   )
 }
@@ -189,9 +215,8 @@ const Rooms = () => {
     getRooms()
   }, [])
 
-  return (
-    <div className="rooms">
-      <h1>rooms</h1>
+  const renderRooms = () => {
+    return (
       <ul style={{ margin: 0, padding: 0 }}>
         {rooms.map((room) => (
           <li style={{ listStyle: 'none' }} key={room._id}>
@@ -199,19 +224,35 @@ const Rooms = () => {
           </li>
         ))}
       </ul>
+    )
+  }
+
+  const renderLoading = () => {
+    return <div className="loader"></div>
+  }
+
+  return (
+    <div className="rooms">
+      <h1>Chat Rooms</h1>
+      {rooms.length !== 0 ? renderRooms() : renderLoading()}
       <button onClick={() => setShowForm(!showForm)}>create new room</button>
-      {showForm ? (
-        <NewRoomForm createRoom={createRoom} handleInput={handleInput} />
-      ) : (
-        ''
-      )}
+      <NewRoomForm
+        createRoom={createRoom}
+        handleInput={handleInput}
+        newRoomName={newRoomName}
+        showForm={showForm}
+      />
     </div>
   )
 }
 
-const NewRoomForm = ({ createRoom, handleInput, newRoomName }) => {
+const NewRoomForm = ({ createRoom, handleInput, newRoomName, showForm }) => {
   return (
-    <form className="new-room-form" onSubmit={createRoom}>
+    <form
+      className="new-room-form"
+      style={{ display: showForm ? 'block' : 'none' }}
+      onSubmit={createRoom}
+    >
       <p>create new room</p>
       <input
         placeholder="room name..."
