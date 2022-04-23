@@ -1,30 +1,104 @@
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+} 
+
 .App {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 2em 1fr; 
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  color: pink;
+}
+
+nav {
+  display: flex;
+  justify-content: space-around;
 }
 
 .room-container {
-  grid-row: 2;
-  grid-column-start: 1;
-  grid-column-end: 3;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex: 0 1 auto;
+  height: 100%;
+  min-height: 0;
 }
 
 .rooms {
-  display: flex;
-  flex-direction: column;
+  width: 50%;
 }
 
 .room {
+  width: 50%;
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
-  justify-content: space-between;
 }
 
 .room h1 {
-  position: sticky;
-  top: 0;
+}
+
+.chat {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.chat-messages {
+  overflow-y: scroll;
+}
+
+.message {
+  max-width: 90%;
+  width: fit-content;
+  margin-left: 2em;
+  margin-right: 2em;
+}
+
+.user-sent {
+  text-align: end;
+}
+
+.user-received {
+
+}
+
+.message-received .message-content {
+  border-radius: 3px 23px 23px 23px;
+}
+
+.message-sent {
+  margin-left: auto;
+  margin-right: 2em;
+}
+
+.message-sent .message-content {
+  border-radius: 23px 3px 23px 23px;
+}
+
+.message-content {
+  background-color: #638FFF;
+  padding: .2em;
+  word-wrap: break-word;
+}
+
+.message-content p {
+  margin: 1em;
+}
+
+.chat form {
+  flex: 0 1 0px;
+  display: flex;
+}
+
+.chat input {
+  flex: 1;
 }
