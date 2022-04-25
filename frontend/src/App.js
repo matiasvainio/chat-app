@@ -44,7 +44,6 @@ const Chat = ({ roomid }) => {
 
   useEffect(() => {
     socket.on('chat messages', (incomingMessages) => {
-      console.log('chat messages useeffect', socket._callbacks)
       setMessages(incomingMessages)
     })
   })
@@ -156,6 +155,7 @@ const Login = () => {
     const name = event.target.name
     const value = event.target.value
     setCredentials((values) => ({ ...values, [name]: value }))
+    console.log(credentials)
   }
 
   return (
@@ -234,8 +234,9 @@ const RoomContainer = () => {
 }
 
 const Rooms = () => {
+  const emtpyRoomObj = { name: '', private: false }
   const [rooms, setRooms] = useState([])
-  const [newRoomName, setNewRoomName] = useState('')
+  const [newRoom, setNewRoom] = useState(emtpyRoomObj)
   const [showForm, setShowForm] = useState(false)
 
   const url = 'http://localhost:3002/api/rooms'
@@ -246,19 +247,30 @@ const Rooms = () => {
   }
 
   const handleInput = (event) => {
-    event.preventDefault()
-    setNewRoomName(event.target.value)
+    const name = event.target.name
+    const value = event.target.value
+    setNewRoom((values) => ({
+      ...values,
+      [name]: name === 'private' ? !newRoom.private : value,
+    }))
   }
 
   const createRoom = async (event) => {
     event.preventDefault()
+    const user = JSON.parse(window.localStorage.getItem('user'))
+
     try {
-      const response = await axios.post(url, { name: newRoomName })
+      if (!user) return
+
+      const response = await axios.post(url, {
+        ...newRoom,
+        createdBy: user._id,
+      })
       setRooms([...rooms, response.data])
-      setNewRoomName('')
     } catch (err) {
       console.log('ei onnistu')
     }
+    setNewRoom(emtpyRoomObj)
   }
 
   useEffect(() => {
@@ -266,13 +278,19 @@ const Rooms = () => {
   }, [])
 
   const renderRooms = () => {
+    const user = JSON.parse(window.localStorage.getItem('user'))
+
     return (
       <ul style={{ margin: 0, padding: 0 }}>
-        {rooms.map((room) => (
-          <li style={{ listStyle: 'none' }} key={room._id}>
-            <Link to={room.name}>{room.name}</Link>
-          </li>
-        ))}
+        {rooms.map((room) => {
+          console.log(room)
+          return (
+            <li style={{ listStyle: 'none' }} key={room._id}>
+              <Link to={room.name}>{room.name}</Link>
+              {user && room.createdBy === user._id ? <button>delete</button> : ''}
+            </li>
+          )
+        })}
       </ul>
     )
   }
@@ -283,9 +301,8 @@ const Rooms = () => {
 
   const renderNewRoomForm = () => {
     const user = JSON.parse(window.localStorage.getItem('user'))
-    console.log(user)
 
-    if (user.token) {
+    if (user && user.token) {
       return (
         <div>
           <button onClick={() => setShowForm(!showForm)}>
@@ -294,7 +311,7 @@ const Rooms = () => {
           <NewRoomForm
             createRoom={createRoom}
             handleInput={handleInput}
-            newRoomName={newRoomName}
+            newRoom={newRoom}
             showForm={showForm}
           />
         </div>
@@ -312,7 +329,7 @@ const Rooms = () => {
   )
 }
 
-const NewRoomForm = ({ createRoom, handleInput, newRoomName, showForm }) => {
+const NewRoomForm = ({ createRoom, handleInput, newRoom, showForm }) => {
   return (
     <form
       className="new-room-form"
@@ -323,7 +340,14 @@ const NewRoomForm = ({ createRoom, handleInput, newRoomName, showForm }) => {
       <input
         placeholder="room name..."
         onChange={handleInput}
-        value={newRoomName}
+        value={newRoom.name}
+        name="name"
+      ></input>
+      <input
+        type="checkbox"
+        onChange={handleInput}
+        name="private"
+        checked={newRoom.private}
       ></input>
       <button>submit</button>
     </form>
@@ -331,13 +355,38 @@ const NewRoomForm = ({ createRoom, handleInput, newRoomName, showForm }) => {
 }
 
 const Room = () => {
+  const [room, setRoom] = useState(true)
   const roomname = useParams()
-  console.log(`join room ${roomname.id}`)
   socket.emit('join room', roomname.id)
+
+  useEffect(() => {
+    socket.off('error')
+    socket.off('success')
+  })
+
+  useEffect(() => {
+    socket.on('error', (err) => {
+      setRoom(false)
+    })
+  })
+
+  useEffect(() => {
+    socket.on('success', () => {
+      setRoom(true)
+    })
+  })
+
+  if (room) {
+    return (
+      <div className="room">
+        <h1>{roomname.id}</h1>
+        <Chat roomid={roomname.id} />
+      </div>
+    )
+  }
   return (
-    <div className="room">
-      <h1>{roomname.id}</h1>
-      <Chat roomid={roomname.id} />
+    <div>
+      <h1>Not found</h1>
     </div>
   )
 }
