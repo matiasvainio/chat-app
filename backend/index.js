@@ -11,6 +11,7 @@ const Message = require('./models/message')
 
 const { Server } = require('socket.io')
 const { createServer } = require('http')
+const Room = require('./models/room')
 
 const app = express()
 const httpServer = createServer(app)
@@ -52,6 +53,13 @@ io.on('connection', async (socket) => {
   })
 
   socket.on('join room', async (roomid) => {
+
+    const room = await Room.findOne({name: roomid})
+    console.log(room);
+
+    if (!room) socket.emit('error', {errror: 'not found'})
+    else socket.emit('success')
+
     socket.rooms.forEach((room) => {
       socket.leave(room)
     })
