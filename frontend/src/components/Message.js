@@ -8,15 +8,15 @@ export const Message = ({ props }) => {
     <li
       className={
         'message ' +
-        (currentUser.username === user ? 'message-sent' : 'message-received')
+        (currentUser && currentUser.username === user ? 'message-sent' : 'message-received')
       }
     >
       <p
         className={
-          currentUser.username === user ? 'user-sent' : 'user-received'
+          currentUser && currentUser.username === user ? 'user-sent' : 'user-received'
         }
       >
-        {currentUser.username === user ? 'You' : user}
+        {currentUser && currentUser.username === user ? 'You' : user}
       </p>
       <div className="message-content">
         <p>{content}</p>
