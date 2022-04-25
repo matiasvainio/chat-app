@@ -8,10 +8,18 @@ const Rooms = () => {
   const [rooms, setRooms] = useState([])
   const [newRoom, setNewRoom] = useState(emtpyRoomObj)
   const [showForm, setShowForm] = useState(false)
+  const [options, setOptions] = useState([])
 
   const url = 'http://localhost:3002/api/rooms'
 
   const getRooms = async () => {
+    const user = JSON.parse(window.localStorage.getItem('user'))
+
+    if (user && user._id) {
+      const response = await axios.get(`${url}/${user._id}`)
+      setRooms(response.data)
+    }
+
     const response = await axios.get(url)
     setRooms(response.data)
   }
@@ -47,23 +55,65 @@ const Rooms = () => {
     getRooms()
   }, [])
 
+  const isVisible = (id) => options[id] === true
+
+  const handleModify = (id) => {
+    setOptions({ ...options, [id]: !isVisible(id) })
+  }
+
+  const deleteRoom = () => {}
+
+  const renameRoom = () => {}
+
+  const toggleRoomVisibility = async (room) => {
+    console.log(room)
+    const newRoom = {
+      ...room,
+      private: !room.private,
+    }
+    const response = await axios.put(`${url}/${room._id}`, newRoom)
+    console.log(response)
+  }
+
+  const messageOptionsWindow = (room) => {
+    return (
+      <div>
+        <button>delete</button>
+        <button>rename</button>
+        <label>is private?</label>
+        <input
+          type="checkbox"
+          onClick={() => toggleRoomVisibility(room)}
+          defaultChecked={room.private}
+        ></input>
+      </div>
+    )
+  }
+
   const renderRooms = () => {
     const user = JSON.parse(window.localStorage.getItem('user'))
 
     return (
       <ul style={{ margin: 0, padding: 0 }}>
         {rooms.map((room) => {
-          console.log(room)
-          return (
-            <li style={{ listStyle: 'none' }} key={room._id}>
-              <Link to={room.name}>{room.name}</Link>
-              {user && room.createdBy === user._id ? (
-                <button>delete</button>
-              ) : (
-                ''
-              )}
-            </li>
-          )
+          if (user && room.createdBy === user._id || room.private === false) {
+            return (
+              <li style={{ listStyle: 'none' }} key={room._id}>
+                <Link to={room.name}>
+                  {room.name} {}
+                </Link>
+                {user && room.createdBy === user._id ? (
+                  <button onClick={() => handleModify(room._id)}>
+                    options
+                  </button>
+                ) : (
+                  ''
+                )}
+                {options[room._id] === true ? messageOptionsWindow(room) : ''}
+              </li>
+            )
+          }
+          return ''
         })}
       </ul>
     )
@@ -97,9 +147,8 @@ const Rooms = () => {
   return (
     <div className="rooms">
       <h1>Chat Rooms</h1>
-      {/* {rooms.length !== 0 ? renderRooms() : renderLoading()} */}
-      {renderRooms()}
-      {/* {renderNewRoomForm()} */}
+      {rooms.length !== 0 ? renderRooms() : renderLoading()}
+      {renderNewRoomForm()}
     </div>
   )
 }
