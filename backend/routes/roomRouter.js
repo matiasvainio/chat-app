@@ -4,17 +4,27 @@ const verifytoken = require('../middleware/auth')
 const Room = require('../models/room')
 
 roomRouter.get('/', async (req, res) => {
-  console.log('get rooms')
   const rooms = await Room.find({})
   return res.status(200).json(rooms)
 })
 
+roomRouter.get('/:id', async (req, res) => {
+  console.log(req.params)
+  const room = await Room.findOne({name: req.params.id})
+  if (room) return res.status(200).json(room)
+  return res.status(404)
+})
+
 roomRouter.post('/', async (req, res) => {
-  const { name } = req.body
+  const { name, createdBy, private } = req.body
 
   const newRoom = new Room({
-    name: name,
+    name,
+    createdBy,
+    private,
   })
+
+  console.log(newRoom)
 
   try {
     await newRoom.save()
