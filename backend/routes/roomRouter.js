@@ -9,10 +9,15 @@ roomRouter.get('/', async (req, res) => {
 })
 
 roomRouter.get('/:id', async (req, res) => {
-  console.log(req.params)
-  const room = await Room.findOne({name: req.params.id})
+  const id = req.params.id
+  const room = await Room.find({ $or: [{ private: false }, { createdBy: id }] })
   if (room) return res.status(200).json(room)
   return res.status(404)
+})
+
+roomRouter.get('/:id', (req, res) => {
+  console.log('foo')
+  // console.log(req.query)
 })
 
 roomRouter.post('/', async (req, res) => {
@@ -24,8 +29,6 @@ roomRouter.post('/', async (req, res) => {
     private,
   })
 
-  console.log(newRoom)
-
   try {
     await newRoom.save()
   } catch (err) {
@@ -33,6 +36,15 @@ roomRouter.post('/', async (req, res) => {
   }
 
   res.status(200).json(newRoom)
+})
+
+roomRouter.put('/:id', async (req, res) => {
+  const room = req.body
+
+  const response = await Room.updateOne(
+    { _id: room._id },
+    { $set: { private: room.private } }
+  )
 })
 
 module.exports = roomRouter
