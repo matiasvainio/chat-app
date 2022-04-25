@@ -55,7 +55,6 @@ io.on('connection', async (socket) => {
   socket.on('join room', async (roomid) => {
 
     const room = await Room.findOne({name: roomid})
-    console.log(room);
 
     if (!room) socket.emit('error', {errror: 'not found'})
     else socket.emit('success')
