@@ -60,7 +60,7 @@ const Login = () => {
     )
   }
 
-  return <div>{() => renderLoginForm}</div>
+  return <div>{renderLoginForm()}</div>
 }
 
 export default Login
