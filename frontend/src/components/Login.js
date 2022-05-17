@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 import axios from 'axios'
 
 const Login = () => {
@@ -28,35 +28,39 @@ const Login = () => {
     const name = event.target.name
     const value = event.target.value
     setCredentials((values) => ({ ...values, [name]: value }))
-    console.log(credentials)
   }
 
-  return (
-    <div>
-      <h1>login</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          placeholder="Email"
-          name="email"
-          onChange={handleChange}
-          value={credentials.email}
-        ></input>
-        <input
-          placeholder="Username"
-          name="username"
-          onChange={handleChange}
-          value={credentials.username}
-        ></input>
-        <input
-          placeholder="Password"
-          name="password"
-          onChange={handleChange}
-          value={credentials.password}
-        ></input>
-        <button>submit</button>
-      </form>
-    </div>
-  )
+  const renderLoginForm = () => {
+    return (
+      <div>
+        <h1>login</h1>
+        <button>signup</button>
+        <form onSubmit={handleSubmit}>
+          <input
+            placeholder="Email"
+            name="email"
+            onChange={handleChange}
+            value={credentials.email}
+          ></input>
+          <input
+            placeholder="Username"
+            name="username"
+            onChange={handleChange}
+            value={credentials.username}
+          ></input>
+          <input
+            placeholder="Password"
+            name="password"
+            onChange={handleChange}
+            value={credentials.password}
+          ></input>
+          <button>submit</button>
+        </form>
+      </div>
+    )
+  }
+
+  return <div>{() => renderLoginForm}</div>
 }
 
 export default Login
