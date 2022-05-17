@@ -96,7 +96,7 @@ const Rooms = () => {
     return (
       <ul style={{ margin: 0, padding: 0 }}>
         {rooms.map((room) => {
-          if (user && room.createdBy === user._id || room.private === false) {
+          if ((user && room.createdBy === user._id) || (room.private === false)) {
             return (
               <li style={{ listStyle: 'none' }} key={room._id}>
                 <Link to={room.name}>
