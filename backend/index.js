@@ -25,7 +25,12 @@ const io = new Server(httpServer, {
 app.use(cors())
 app.use(express.json())
 
-mongoose.connect(process.env.MONGODB_URI)
+const MONGODB_URI =
+  process.env.NODE_ENV === 'test'
+    ? process.env.MONGODB_URI_TEST
+    : process.env.MONGODB_URI
+
+mongoose.connect(MONGODB_URI)
 
 app.use('/api/messages', verifytoken, messageRouter)
 app.use('/api/user', userRouter)
@@ -53,10 +58,9 @@ io.on('connection', async (socket) => {
   })
 
   socket.on('join room', async (roomid) => {
+    const room = await Room.findOne({ name: roomid })
 
-    const room = await Room.findOne({name: roomid})
-
-    if (!room) socket.emit('error', {errror: 'not found'})
+    if (!room) socket.emit('error', { errror: 'not found' })
     else socket.emit('success')
 
     socket.rooms.forEach((room) => {
@@ -68,3 +72,5 @@ io.on('connection', async (socket) => {
 })
 
 httpServer.listen(3002)
+
+module.exports = app

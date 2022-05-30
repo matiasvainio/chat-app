@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.js"
+    "test": "NODE_ENV=test mocha tests/**.js",
+    "dev": "NODE_ENV=dev nodemon index.js"
   },
   "keywords": [],
   "author": "",
@@ -19,5 +19,15 @@
     "mongoose": "^6.2.10",
     "nodemon": "^2.0.15",
     "socket.io": "^4.4.1"
+  },
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "chai-http": "^4.3.0",
+    "jest": "^28.1.0",
+    "mocha": "^10.0.0",
+    "supertest": "^6.2.3"
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
 }
