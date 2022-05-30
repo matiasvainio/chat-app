@@ -9,8 +9,8 @@ messageRouter.get('/', async (_req, res) => {
 
 messageRouter.post('/', async (req, res) => {
   const body = req.body
-  if (body.content === undefined) {
-    return res.status(401).json({ error: 'content missing' })
+  if (!body.content && !body.user) {
+    return res.status(400).json({ error: 'invalid message' })
   }
 
   const message = new Message({
