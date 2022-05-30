@@ -37,7 +37,7 @@ userRouter.post('/register', async (req, res) => {
 
     res.status(201).json(user)
   } catch (err) {
-    console.log(err)
+    res.status(400)
   }
 })
 
@@ -46,14 +46,12 @@ userRouter.post('/login', async (req, res) => {
     const { email, password } = req.body
 
     if (!(email && password)) {
-      console.log(email, password)
       return res.status(400).json({ error: 'username or password missing' })
     }
 
     const user = await User.findOne({ email })
 
     if (!(user && (await bcrypt.compare(password, user.password)))) {
-      console.log('invalid creds')
       return res.status(400).json({ error: 'invalid credentials' })
     }
 
@@ -68,7 +66,7 @@ userRouter.post('/login', async (req, res) => {
 
     res.status(200).json(user)
   } catch (err) {
-    console.log(err)
+    res.status(400)
   }
 })
 
