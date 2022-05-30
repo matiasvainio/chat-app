@@ -21,12 +21,12 @@ roomRouter.get('/:id', (req, res) => {
 })
 
 roomRouter.post('/', async (req, res) => {
-  const { name, createdBy, private } = req.body
+  const { name, createdBy, privacy } = req.body
 
   const newRoom = new Room({
     name,
     createdBy,
-    private,
+    privacy,
   })
 
   try {
