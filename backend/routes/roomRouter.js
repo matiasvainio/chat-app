@@ -23,6 +23,9 @@ roomRouter.get('/:id', (req, res) => {
 roomRouter.post('/', async (req, res) => {
   const { name, createdBy, privacy } = req.body
 
+  if (!(name && createdBy && privacy !== undefined)) 
+    return res.status(400).json({ error: 'invalid content' })
+
   const newRoom = new Room({
     name,
     createdBy,
