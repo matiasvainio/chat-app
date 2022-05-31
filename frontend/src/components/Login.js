@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios'
+import { setUser } from '../utils/utils'
+import { logIn } from '../services/userService'
 
 const Login = () => {
   const emptyCredentials = {
@@ -11,12 +13,10 @@ const Login = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    const url = 'http://localhost:3002/api/user/login'
 
     try {
-      const response = await axios.post(url, credentials)
-      console.log(response.data)
-      window.localStorage.setItem('user', JSON.stringify(response.data))
+      const response = logIn(credentials)
+      setUser(response)
     } catch (err) {
       console.log(err)
     }
