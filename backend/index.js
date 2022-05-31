@@ -71,6 +71,8 @@ io.on('connection', async (socket) => {
   })
 })
 
-httpServer.listen(3002)
+if (process.env.NODE_ENV !== 'test') {
+  httpServer.listen(3002)
+}
 
 module.exports = app
