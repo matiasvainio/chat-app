@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import Chat from './Chat'
-import SocketContext from './SocketContext'
+import SocketContext from '../contexts/socketContext'
 
 const Room = () => {
   const socket = useContext(SocketContext)
