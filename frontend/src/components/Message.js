@@ -1,4 +1,4 @@
-import React from "react"
+import React from 'react'
 
 export const Message = ({ props }) => {
   const { content, _id, date, user } = props
@@ -8,12 +8,16 @@ export const Message = ({ props }) => {
     <li
       className={
         'message ' +
-        (currentUser && currentUser.username === user ? 'message-sent' : 'message-received')
+        (currentUser && currentUser.username === user
+          ? 'message-sent'
+          : 'message-received')
       }
     >
       <p
         className={
-          currentUser && currentUser.username === user ? 'user-sent' : 'user-received'
+          currentUser && currentUser.username === user
+            ? 'user-sent'
+            : 'user-received'
         }
       >
         {currentUser && currentUser.username === user ? 'You' : user}
