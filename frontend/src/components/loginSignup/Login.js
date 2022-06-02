@@ -1,7 +1,6 @@
-import React, { useState } from 'react'
-import axios from 'axios'
-import { setUser } from '../utils/utils'
-import { logIn } from '../services/userService'
+import { useState } from 'react'
+import { setUser } from '../../utils/utils'
+import { logIn } from '../../adapters/userService'
 
 const Login = () => {
   const emptyCredentials = {
@@ -15,7 +14,7 @@ const Login = () => {
     event.preventDefault()
 
     try {
-      const response = logIn(credentials)
+      const response = await logIn(credentials)
       setUser(response)
     } catch (err) {
       console.log(err)
@@ -34,7 +33,6 @@ const Login = () => {
     return (
       <div>
         <h1>login</h1>
-        <button>signup</button>
         <form onSubmit={handleSubmit}>
           <input
             placeholder="Email"
@@ -42,12 +40,12 @@ const Login = () => {
             onChange={handleChange}
             value={credentials.email}
           ></input>
-          <input
+          {/* <input
             placeholder="Username"
             name="username"
             onChange={handleChange}
             value={credentials.username}
-          ></input>
+          ></input> */}
           <input
             placeholder="Password"
             name="password"
