@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useContext } from 'react'
+import { useState, useEffect, useRef, useContext } from 'react'
 import { ObjectId } from 'bson'
 import Message from './Message'
-import SocketContext from './SocketContext'
+import SocketContext from '../contexts/socketContext'
+import { getUser } from '../utils/utils'
 
 const Chat = ({ roomid }) => {
   const socket = useContext(SocketContext)
@@ -39,16 +40,23 @@ const Chat = ({ roomid }) => {
   const handleSubmit = (event) => {
     event.preventDefault()
 
-    const message = {
-      _id: new ObjectId().toString(),
-      content: input,
-      date: new Date(),
-      roomid: roomid,
-      user: JSON.parse(window.localStorage.getItem('user')).username,
+    const user = getUser()
+
+    if (user) {
+      const message = {
+        _id: new ObjectId().toString(),
+        content: input,
+        date: new Date(),
+        roomid: roomid,
+        user: user,
+      }
+
+      socket.emit('chat message', message)
+      setInput('')
+      return
     }
 
-    socket.emit('chat message', message)
-    setInput('')
+    console.log('set username please')
   }
 
   const handleInput = (event) => {
