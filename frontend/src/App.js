@@ -1,7 +1,7 @@
 import { Routes, Route, Link, Outlet } from 'react-router-dom'
 import './App.css'
 import Landing from './components/Landing'
-import Login from './components/Login'
+import LoginSignupContainer from './components/loginSignup/LoginSignupContainer'
 import Room from './components/Room'
 import Settings from './components/Settings'
 import Rooms from './components/Rooms'
@@ -17,7 +17,7 @@ function App() {
       </nav>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="login" element={<Login />} />
+        <Route path="login" element={<LoginSignupContainer />} />
         <Route path="rooms" element={<RoomContainer />}>
           <Route path=":id" element={<Room />} />
         </Route>
@@ -35,7 +35,5 @@ const RoomContainer = () => {
     </div>
   )
 }
-
-
 
 export default App
