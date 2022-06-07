@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import NewRoomForm from './NewRoomForm'
+import { getRooms, createRoom } from '../adapters/roomService'
 
 const Rooms = () => {
   const emtpyRoomObj = { name: '', private: false }
@@ -12,16 +13,9 @@ const Rooms = () => {
 
   const url = 'http://localhost:3002/api/rooms'
 
-  const getRooms = async () => {
-    const user = JSON.parse(window.localStorage.getItem('user'))
-
-    if (user && user._id) {
-      const response = await axios.get(`${url}/${user._id}`)
-      setRooms(response.data)
-    }
-
-    const response = await axios.get(url)
-    setRooms(response.data)
+  const getRoomsAsync = async () => {
+    const response = await getRooms()
+    setRooms(response)
   }
 
   const handleInput = (event) => {
@@ -33,26 +27,15 @@ const Rooms = () => {
     }))
   }
 
-  const createRoom = async (event) => {
+  const handleCreateRoom = async (event) => {
     event.preventDefault()
-    const user = JSON.parse(window.localStorage.getItem('user'))
-
-    try {
-      if (!user) return
-
-      const response = await axios.post(url, {
-        ...newRoom,
-        createdBy: user._id,
-      })
-      setRooms([...rooms, response.data])
-    } catch (err) {
-      console.log('ei onnistu')
-    }
+    const response = handleCreateRoom(newRoom)
+    setRooms([...rooms, response])
     setNewRoom(emtpyRoomObj)
   }
 
   useEffect(() => {
-    getRooms()
+    getRoomsAsync()
   }, [])
 
   const isVisible = (id) => options[id] === true
@@ -96,7 +79,7 @@ const Rooms = () => {
     return (
       <ul style={{ margin: 0, padding: 0 }}>
         {rooms.map((room) => {
-          if ((user && room.createdBy === user._id) || (room.private === false)) {
+          if ((user && room.createdBy === user._id) || room.private === false) {
             return (
               <li style={{ listStyle: 'none' }} key={room._id}>
                 <Link to={room.name}>
@@ -133,7 +116,7 @@ const Rooms = () => {
             create new room
           </button>
           <NewRoomForm
-            createRoom={createRoom}
+            handleCreateRoom={handleCreateRoom}
             handleInput={handleInput}
             newRoom={newRoom}
             showForm={showForm}

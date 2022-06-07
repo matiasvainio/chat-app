@@ -1,11 +1,11 @@
 import React from 'react'
 
-const NewRoomForm = ({ createRoom, handleInput, newRoom, showForm }) => {
+const NewRoomForm = ({ handleCreateRoom, handleInput, newRoom, showForm }) => {
   return (
     <form
       className="new-room-form"
       style={{ display: showForm ? 'block' : 'none' }}
-      onSubmit={createRoom}
+      onSubmit={handleCreateRoom}
     >
       <p>create new room</p>
       <input
