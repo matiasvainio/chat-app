@@ -48,7 +48,7 @@ const Chat = ({ roomid }) => {
         content: input,
         date: new Date(),
         roomid: roomid,
-        user: user,
+        user: user.username,
       }
 
       socket.emit('chat message', message)
